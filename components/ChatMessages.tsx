@@ -1,39 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, ScrollView, Pressable } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { format } from 'date-fns';
+import { useFocusEffect } from 'expo-router';
 
-const MESSAGES_KEY = 'chat_sessions';
+const CHAT_SESSIONS_KEY = 'chat_sessions';
 
 export default function ChatMessages() {
-	const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>>([]);
+	const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; date: string; timestamp: string }>>([]);
 	const [currentMessage, setCurrentMessage] = useState('');
-
-	const storeSession = async (newMessages: any) => {
-		try {
-			const existingSessions = await AsyncStorage.getItem(MESSAGES_KEY);
-			let sessions = existingSessions ? existingSessions : [];
-
-			sessions = [...sessions, newMessages];
-
-			await AsyncStorage.setItem(MESSAGES_KEY, JSON.stringify(sessions));
-		} catch (error) {
-			console.error('Failed to store messages:', error);
-		}
-	};
 
 	const handleSendMessage = async () => {
 		if (currentMessage.trim() === '') return;
 
-		const updatedMessages = [...messages, { role: 'user', content: currentMessage, timestamp: new Date().toISOString() }];
+		const currentDateTime = new Date();
+		const date = format(currentDateTime, 'dd-MM-yyyy');
+		const timestamp = format(currentDateTime, 'HH:mm:ss');
+
+		const userMessage = {
+			role: 'user',
+			content: currentMessage,
+			date,
+			timestamp,
+		};
+
+		const updatedMessages = [...messages, userMessage];
 		setMessages(updatedMessages);
 
 		try {
 			const payload = {
-				model: 'gpt-3.5-turbo',
 				messages: updatedMessages.map((msg) => {
 					return { role: msg.role, content: msg.content };
 				}),
+				model: 'gpt-3.5-turbo',
 			};
 
 			const response = await axios.post('https://api.openai.com/v1/chat/completions', payload, {
@@ -44,7 +44,14 @@ export default function ChatMessages() {
 			});
 
 			const botResponse = response.data.choices[0].message.content.trim();
-			const finalUpdatedMessages = [...updatedMessages, { role: 'assistant', content: botResponse, timestamp: new Date().toISOString() }];
+			const botMessage = {
+				role: 'assistant',
+				content: botResponse,
+				date,
+				timestamp,
+			};
+
+			const finalUpdatedMessages = [...updatedMessages, botMessage];
 			setMessages(finalUpdatedMessages);
 
 			setCurrentMessage('');
@@ -53,14 +60,35 @@ export default function ChatMessages() {
 		}
 	};
 
-	useEffect(() => {
-		return () => {
-			storeSession(messages);
-		};
-	}, []);
+	useFocusEffect(
+		React.useCallback(() => {
+			return saveChatSession;
+		}, [messages])
+	);
+
+	const saveChatSession = async () => {
+		try {
+			const storedSessions = await AsyncStorage.getItem(CHAT_SESSIONS_KEY);
+			let allSessions = storedSessions ? JSON.parse(storedSessions) : [];
+
+			if (messages.length > 0) {
+				allSessions.push(messages);
+				await AsyncStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(allSessions));
+			}
+		} catch (error) {
+			console.error('Failed to save chat:', error);
+		}
+	};
+
+	const handleClearChat = () => {
+		setMessages([]);
+	};
 
 	return (
 		<View style={{ flex: 1 }}>
+			<Pressable style={styles.clearButton} onPress={handleClearChat}>
+				<Text style={styles.clearButtonText}>Clear</Text>
+			</Pressable>
 			<ScrollView style={{ padding: 10 }}>
 				{messages.map((message, index) => (
 					<View key={index} style={{ marginBottom: 10 }}>
@@ -70,9 +98,7 @@ export default function ChatMessages() {
 						<Text style={{ color: message.role === 'user' ? 'blue' : 'green', alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
 							{message.content}
 						</Text>
-						<Text style={{ fontSize: 10, color: 'gray', alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
-							{new Date(message.timestamp).toLocaleTimeString()}
-						</Text>
+						<Text style={{ fontSize: 10, color: 'gray', alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start' }}>{message.timestamp}</Text>
 					</View>
 				))}
 			</ScrollView>
@@ -100,5 +126,16 @@ const styles = {
 		padding: 10,
 		marginRight: 10,
 		minHeight: 40,
+	},
+	clearButton: {
+		width: 50,
+		height: 30,
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: 'red',
+		borderRadius: 15,
+	},
+	clearButtonText: {
+		color: 'white',
 	},
 };

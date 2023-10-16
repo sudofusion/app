@@ -3,10 +3,33 @@ import { Platform, ScrollView, StyleSheet } from 'react-native';
 
 import { Text, View } from '../components/Themed';
 import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CHAT_SESSIONS_KEY = 'chat_sessions';
 
 export default function ModalScreen() {
-	const { session } = useLocalSearchParams();
-	console.log(JSON.parse(session));
+	const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; date: string; timestamp: string }>>([]);
+	const { sessionIndex } = useLocalSearchParams();
+	console.log(typeof sessionIndex);
+	console.log(sessionIndex);
+
+	const loadSession = async () => {
+		try {
+			const storedSessions = await AsyncStorage.getItem(CHAT_SESSIONS_KEY);
+			if (storedSessions) {
+				const allSessions = JSON.parse(storedSessions);
+				console.log('Loaded session:', allSessions[+sessionIndex]);
+				setMessages(allSessions[+sessionIndex]);
+			}
+		} catch (error) {
+			console.error('Failed to load session:', error);
+		}
+	};
+	useEffect(() => {
+		loadSession();
+	}, []);
+
 	return (
 		<View style={styles.container}>
 			<Text style={styles.title}>Modal</Text>
@@ -14,23 +37,22 @@ export default function ModalScreen() {
 
 			<View style={{ flex: 1, padding: 10 }}>
 				<ScrollView style={{ padding: 10 }}>
-					{session.map((message, index) => (
+					{messages.map((message, index) => (
 						<View key={index} style={{ marginBottom: 10 }}>
-							<Text style={{ color: message.type === 'user' ? 'blue' : 'green', alignSelf: message.type === 'user' ? 'flex-end' : 'flex-start' }}>
-								{message.type === 'user' ? 'You:' : 'LLM Bot:'}
+							<Text style={{ color: message.role === 'user' ? 'blue' : 'green', alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
+								{message.role === 'user' ? 'You:' : 'LLM Bot:'}
 							</Text>
-							<Text style={{ color: message.type === 'user' ? 'blue' : 'green', alignSelf: message.type === 'user' ? 'flex-end' : 'flex-start' }}>
+							<Text style={{ color: message.role === 'user' ? 'blue' : 'green', alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
 								{message.content}
 							</Text>
-							<Text style={{ fontSize: 10, color: 'gray', alignSelf: message.type === 'user' ? 'flex-end' : 'flex-start' }}>
-								{new Date(message.timestamp).toLocaleTimeString()}
+							<Text style={{ fontSize: 10, color: 'gray', alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
+								{message.timestamp}
 							</Text>
 						</View>
 					))}
 				</ScrollView>
 			</View>
 
-			{/* Use a light status bar on iOS to account for the black space above the modal */}
 			<StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
 		</View>
 	);

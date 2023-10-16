@@ -3,7 +3,7 @@ import { View, Text, FlatList, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-const MESSAGES_KEY = 'chat_sessions';
+const CHAT_SESSIONS_KEY = 'chat_sessions';
 
 export default function ChatSessionsList() {
 	const [sessions, setSessions] = useState([]);
@@ -12,7 +12,7 @@ export default function ChatSessionsList() {
 	useEffect(() => {
 		const loadSessions = async () => {
 			try {
-				const storedSessions = await AsyncStorage.getItem(MESSAGES_KEY);
+				const storedSessions = await AsyncStorage.getItem(CHAT_SESSIONS_KEY);
 				if (storedSessions) {
 					setSessions(JSON.parse(storedSessions));
 				}
@@ -30,15 +30,8 @@ export default function ChatSessionsList() {
 				data={sessions}
 				renderItem={({ item, index }) => (
 					<View style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: '#ccc' }}>
-						<Text>Chat {index + 1}</Text>
-						<Button
-							title="View Chat"
-							onPress={() =>
-								//TODO:
-								// navigation.navigate('ChatSession', { session: item })
-								router.push({ pathname: '/modal', params: { session: item } })
-							}
-						/>
+						<Text>Chat {item[0].date}</Text>
+						<Button title="View Chat" onPress={() => router.push({ pathname: '/modal', params: { sessionIndex: +index } })} />
 					</View>
 				)}
 				keyExtractor={(item, index) => index.toString()}
@@ -47,7 +40,7 @@ export default function ChatSessionsList() {
 				<Button
 					title="Clear Chats"
 					onPress={() =>
-						AsyncStorage.removeItem(MESSAGES_KEY)
+						AsyncStorage.removeItem(CHAT_SESSIONS_KEY)
 							.then(() => setSessions([]))
 							.catch((error) => console.error('Failed to clear chats:', error))
 					}

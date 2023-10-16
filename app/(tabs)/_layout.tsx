@@ -3,6 +3,7 @@ import { Link, Tabs } from 'expo-router';
 import { Pressable, useColorScheme } from 'react-native';
 
 import Colors from '../../constants/Colors';
+import { format } from 'date-fns';
 
 function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['name']; color: string }) {
 	return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
@@ -10,6 +11,9 @@ function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['nam
 
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
+
+	const currentDateTime = new Date();
+	const date = format(currentDateTime, 'dd-MM-yyyy');
 
 	return (
 		<Tabs
@@ -20,7 +24,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="index"
 				options={{
-					title: 'New Chat',
+					title: `New Chat – ${date}`,
 					tabBarIcon: ({ color }) => <TabBarIcon name="pencil-square-o" color={color} />,
 				}}
 			/>
