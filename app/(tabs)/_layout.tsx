@@ -12,9 +12,6 @@ function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['nam
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
 
-	const currentDateTime = new Date();
-	const date = format(currentDateTime, 'dd-MM-yyyy');
-
 	return (
 		<Tabs
 			screenOptions={{
@@ -24,7 +21,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="index"
 				options={{
-					title: `New Chat – ${date}`,
+					title: 'New Chat',
 					tabBarIcon: ({ color }) => <TabBarIcon name="pencil-square-o" color={color} />,
 				}}
 			/>

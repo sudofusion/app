@@ -62,12 +62,13 @@ export default function ChatMessages() {
 
 	useFocusEffect(
 		React.useCallback(() => {
-			return saveChatSession;
+			return () => saveChatSession();
 		}, [messages])
 	);
 
 	const saveChatSession = async () => {
 		try {
+			console.log('Saving current session...');
 			const storedSessions = await AsyncStorage.getItem(CHAT_SESSIONS_KEY);
 			let allSessions = storedSessions ? JSON.parse(storedSessions) : [];
 
@@ -86,6 +87,7 @@ export default function ChatMessages() {
 
 	return (
 		<View style={{ flex: 1 }}>
+			<Text style={styles.clearButtonText}>16 Oct 2023</Text>
 			<Pressable style={styles.clearButton} onPress={handleClearChat}>
 				<Text style={styles.clearButtonText}>Clear</Text>
 			</Pressable>
@@ -132,6 +134,8 @@ const styles = {
 		height: 30,
 		justifyContent: 'center',
 		alignItems: 'center',
+		alignSelf: 'flex-end',
+		margin: 10,
 		backgroundColor: 'red',
 		borderRadius: 15,
 	},
