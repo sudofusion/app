@@ -1,9 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router';
+import { Link, SplashScreen, Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { Pressable, useColorScheme } from 'react-native';
+import Colors from '../constants/Colors';
+import { format } from 'date-fns';
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -44,11 +46,34 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
 	const colorScheme = useColorScheme();
+	const currentDateTime = new Date();
+	const date = format(currentDateTime, 'dd MMM yyyy');
 
 	return (
 		<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
 			<Stack>
-				<Stack.Screen name="(tabs)" options={{ headerShown: false, headerTitle: '' }} />
+				<Stack.Screen
+					name="(tabs)"
+					options={{
+						headerShown: false,
+						// headerTitle: date,
+						// headerRight: () => (
+						// 	<Link href="/login" asChild>
+						// 		<Pressable>
+						// 			{({ pressed }) => (
+						// 				<FontAwesome
+						// 					name="user"
+						// 					size={25}
+						// 					color={Colors[colorScheme ?? 'light'].text}
+						// 					style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+						// 				/>
+						// 			)}
+						// 		</Pressable>
+						// 	</Link>
+						// ),
+					}}
+				/>
+				<Stack.Screen name="account" options={{ presentation: 'modal' }} />
 				<Stack.Screen name="modal" options={{ presentation: 'modal' }} />
 			</Stack>
 		</ThemeProvider>
