@@ -32,11 +32,9 @@ export default function ModalScreen() {
 
 	return (
 		<View style={styles.container}>
-			<Text style={styles.title}>Modal</Text>
-			<View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-
 			<View style={{ flex: 1, padding: 10 }}>
 				<ScrollView style={{ padding: 10 }}>
+					<Text style={{ fontSize: 14, fontWeight: 'bold' }}>Previous Chat – {messages && messages[0] ? messages[0].date : null}</Text>
 					{messages.map((message, index) => (
 						<View key={index} style={{ marginBottom: 10 }}>
 							<Text style={{ color: message.role === 'user' ? 'blue' : 'green', alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start' }}>

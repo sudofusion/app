@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
 
 import { Text, View } from '../../components/Themed';
-import ChatHistory from '../../components/ChatSessionsList';
+import ChatSessionsList from '../../components/ChatSessionsList';
 
 export default function ChatHistoryScreen() {
 	return (
 		<View style={styles.container}>
-			<ChatHistory />
+			<ChatSessionsList />
 		</View>
 	);
 }
